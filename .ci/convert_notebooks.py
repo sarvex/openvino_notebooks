@@ -43,14 +43,27 @@ def main():
         notebook_executed = notebook_path.parent / notebook_path.name.replace(".ipynb", "-with-output.ipynb")
         start = time.perf_counter()
         print(f"Convert {notebook_path}")
-        if str(notebook_path) not in ignore_execution_list:
-            retcode = subprocess.run(["jupyter", "nbconvert",  "--log-level=INFO", "--execute", "--to",  "notebook", "--output",
-                                     str(notebook_executed),  '--output-dir', str(root), '--ExecutePreprocessor.kernel_name=python3', str(notebook_path)], timeout=args.timeout).returncode
-            if retcode:
-                failed_notebooks.append(str(notebook_path))
-                continue
-        else:
+        if str(notebook_path) in ignore_execution_list:
             shutil.copyfile(notebook_path, notebook_executed)
+        elif retcode := subprocess.run(
+            [
+                "jupyter",
+                "nbconvert",
+                "--log-level=INFO",
+                "--execute",
+                "--to",
+                "notebook",
+                "--output",
+                str(notebook_executed),
+                '--output-dir',
+                str(root),
+                '--ExecutePreprocessor.kernel_name=python3',
+                str(notebook_path),
+            ],
+            timeout=args.timeout,
+        ).returncode:
+            failed_notebooks.append(str(notebook_path))
+            continue
         rst_retcode = subprocess.run(["jupyter", "nbconvert", "--to", "rst", str(notebook_executed), "--output-dir", str(args.rst_dir),
                                           "--TagRemovePreprocessor.remove_all_outputs_tags=hide_output --TagRemovePreprocessor.enabled=True"], timeout=args.timeout).returncode
         notebook_rst = args.rst_dir / notebook_executed.name.replace(".ipynb", ".rst")
@@ -61,7 +74,7 @@ def main():
         print(f"Notebook conversion took: {end:.4f} s")
         if rst_retcode:
             rst_failed.append(str(notebook_path))
-    
+
     if failed_notebooks:
         print("EXECUTION FAILED:")
         print("\n".join(failed_notebooks))

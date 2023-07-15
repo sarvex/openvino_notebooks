@@ -23,7 +23,7 @@ def get_root_relative_poses(inference_results):
     features, heatmap, paf_map = inference_results
 
     upsample_ratio = 4
-    found_poses = extract_poses(heatmap[0:-1], paf_map, upsample_ratio)[0]
+    found_poses = extract_poses(heatmap[:-1], paf_map, upsample_ratio)[0]
     # scale coordinates to features space
     found_poses[:, 0:-1:3] /= upsample_ratio
     found_poses[:, 1:-1:3] /= upsample_ratio
@@ -93,13 +93,13 @@ def parse_poses(inference_results, input_scale, stride, fx, is_video=False):
 
     if is_video:  # track poses ids
         current_poses_2d = []
-        for pose_id in range(len(poses_2d_scaled)):
+        for item in poses_2d_scaled:
             pose_keypoints = np.ones((Pose.num_kpts, 2), dtype=np.int32) * -1
             for kpt_id in range(Pose.num_kpts):
-                if poses_2d_scaled[pose_id][kpt_id * 3 + 2] != -1.0:  # keypoint is found
-                    pose_keypoints[kpt_id, 0] = int(poses_2d_scaled[pose_id][kpt_id * 3 + 0])
-                    pose_keypoints[kpt_id, 1] = int(poses_2d_scaled[pose_id][kpt_id * 3 + 1])
-            pose = Pose(pose_keypoints, poses_2d_scaled[pose_id][-1])
+                if item[kpt_id * 3 + 2] != -1.0:  # keypoint is found
+                    pose_keypoints[kpt_id, 0] = int(item[kpt_id * 3 + 0])
+                    pose_keypoints[kpt_id, 1] = int(item[kpt_id * 3 + 1])
+            pose = Pose(pose_keypoints, item[-1])
             current_poses_2d.append(pose)
         propagate_ids(previous_poses_2d, current_poses_2d)
         previous_poses_2d = current_poses_2d

@@ -60,9 +60,7 @@ def show_live_inference(
     start_time = time.perf_counter()
 
     while next_frame_id < len(image_paths) - 1:
-        results = pipeline.get_result(next_frame_id_to_show)
-
-        if results:
+        if results := pipeline.get_result(next_frame_id_to_show):
             # Show next result from async pipeline
             result, meta = results
             display_handle = show_array(result, display_handle)
@@ -87,8 +85,7 @@ def show_live_inference(
 
     # Show all frames that are in the pipeline after all images have been submitted
     while pipeline.has_completed_request():
-        results = pipeline.get_result(next_frame_id_to_show)
-        if results:
+        if results := pipeline.get_result(next_frame_id_to_show):
             result, meta = results
             display_handle = show_array(result, display_handle)
             next_frame_id_to_show += 1
@@ -107,7 +104,7 @@ def parse_devices(device_string):
     colon_position = device_string.find(':')
     if colon_position != -1:
         device_type = device_string[:colon_position]
-        if device_type == 'HETERO' or device_type == 'MULTI':
+        if device_type in ['HETERO', 'MULTI']:
             comma_separated_devices = device_string[colon_position + 1:]
             devices = comma_separated_devices.split(',')
             for device in devices:
@@ -174,7 +171,7 @@ class AsyncPipeline:
         self.model = model
         self.logger = logging.getLogger()
 
-        self.logger.info('Loading network to {} plugin...'.format(device))
+        self.logger.info(f'Loading network to {device} plugin...')
         self.exec_net = ie.compile_model(self.model.net, device, plugin_config)
         if max_num_requests == 0:
             max_num_requests = self.exec_net.get_property('OPTIMAL_NUMBER_OF_INFER_REQUESTS') + 1
@@ -210,8 +207,7 @@ class AsyncPipeline:
         return None
 
     def get_result(self, id):
-        result = self.get_raw_result(id)
-        if result:
+        if result := self.get_raw_result(id):
             raw_result, meta, preprocess_meta = result
             return self.model.postprocess(raw_result, preprocess_meta), meta
         return None

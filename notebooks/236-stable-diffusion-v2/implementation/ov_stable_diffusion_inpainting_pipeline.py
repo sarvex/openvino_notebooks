@@ -392,11 +392,10 @@ class OVStableDiffusionInpaintingPipeline(DiffusionPipeline):
                 orig_height, orig_width = meta["src_height"], meta["src_width"]
                 image = [img.resize((orig_width, orig_height),
                                     PIL.Image.Resampling.LANCZOS) for img in image]
-        else:
-            if "src_height" in meta:
-                orig_height, orig_width = meta["src_height"], meta["src_width"]
-                image = [cv2.resize(img, (orig_width, orig_width))
-                         for img in image]
+        elif "src_height" in meta:
+            orig_height, orig_width = meta["src_height"], meta["src_width"]
+            image = [cv2.resize(img, (orig_width, orig_width))
+                     for img in image]
         return image
 
     def get_timesteps(self, num_inference_steps:int, strength:float):
@@ -476,9 +475,7 @@ def generate_video(
     num_interpol_frames = 30
 
     current_image = init_images[0]
-    all_frames = []
-    all_frames.append(current_image)
-
+    all_frames = [current_image]
     for i in range(num_outpainting_steps):
         print(f"Generating image: {i + 1} / {num_outpainting_steps}")
 
@@ -530,7 +527,7 @@ def generate_video(
 
     video_file_name = f"infinite_zoom_{'in' if zoom_in else 'out'}"
     fps = 30
-    save_path = video_file_name + ".mp4"
+    save_path = f"{video_file_name}.mp4"
     write_video(save_path, all_frames, fps, reversed_order=zoom_in)
     return save_path
 

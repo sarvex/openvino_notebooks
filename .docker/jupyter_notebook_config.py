@@ -10,8 +10,7 @@ c.NotebookApp.quit_button = False
 if os.environ.get('JUPYTERHUB_SERVICE_PREFIX'):
     c.NotebookApp.base_url = os.environ.get('JUPYTERHUB_SERVICE_PREFIX')
 
-password = os.environ.get('JUPYTER_NOTEBOOK_PASSWORD')
-if password:
+if password := os.environ.get('JUPYTER_NOTEBOOK_PASSWORD'):
     import notebook.auth
     c.NotebookApp.password = notebook.auth.passwd(password)
     del password

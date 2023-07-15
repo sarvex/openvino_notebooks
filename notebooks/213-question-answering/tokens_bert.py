@@ -29,7 +29,7 @@ def encode_by_voc(w, vocab):
         s, e = s0, e0
         tokens = []
         while e > s:
-            subword = w[s:e] if s == s0 else "##" + w[s:e]
+            subword = w[s:e] if s == s0 else f"##{w[s:e]}"
             if subword in vocab:
                 tokens.append(vocab[subword])
                 s, e = e, e0
@@ -45,7 +45,7 @@ def encode_by_voc(w, vocab):
 # iteratively return words
 def split_to_words(text):
     prev_is_sep = True  # mark initial prev as space to start word from 0 char
-    for i, c in enumerate(text + " "):
+    for i, c in enumerate(f"{text} "):
         is_punc = (c in string.punctuation or unicodedata.category(c)[0] == "P")
         cur_is_sep = (c.isspace() or is_punc)
         if prev_is_sep != cur_is_sep:

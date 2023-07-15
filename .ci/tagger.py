@@ -23,8 +23,7 @@ def find_tags_for_notebook(notebook_path: str, tags: dict):
 def find_tags_for_all_notebooks(notebooks: list, tags: dict):
     notebooks_tags = {}
     for notebook in notebooks:
-        nb_tags = sorted(find_tags_for_notebook(notebook, tags))
-        if nb_tags: 
+        if nb_tags := sorted(find_tags_for_notebook(notebook, tags)):
             notebooks_tags[notebook.split('/')[-1].split('.')[0]] = nb_tags
     return notebooks_tags
 
