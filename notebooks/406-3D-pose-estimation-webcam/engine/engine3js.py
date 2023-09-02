@@ -147,10 +147,7 @@ class Skeleton(Geometry):
         for pose_position_tmp in poses_3d:
             bones = []
             for edge in self.body_edges:
-                # put pair of points as limbs
-                bones.append(pose_position_tmp[edge[0]])
-                bones.append(pose_position_tmp[edge[1]])
-
+                bones.extend((pose_position_tmp[edge[0]], pose_position_tmp[edge[1]]))
             bones = np.asarray(bones, dtype=np.float32)
 
             # You can find the api in https://github.com/jupyter-widgets/pythreejs
@@ -165,7 +162,7 @@ class Skeleton(Geometry):
 
             pose = LineSegments(self.geometry, self.material)
             poses.append(pose)
-            # self.geometry.close()
+                # self.geometry.close()
         return poses
 
     def plot(self, pose_points=None):

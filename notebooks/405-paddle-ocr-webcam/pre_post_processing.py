@@ -24,10 +24,7 @@ def DetResizeForTest(data):
 
     # limit the max side
     if max(h, w) > limit_side_len:
-        if h > w:
-            ratio = float(limit_side_len) / h
-        else:
-            ratio = float(limit_side_len) / w
+        ratio = float(limit_side_len) / h if h > w else float(limit_side_len) / w
     else:
         ratio = 1.
 
@@ -46,7 +43,7 @@ def DetResizeForTest(data):
         sys.exit(0)
     ratio_h = resize_h / float(h)
     ratio_w = resize_w / float(w)
-        
+
     data['image'] = img
     data['shape'] = np.array([src_h, src_w, ratio_h, ratio_w])
     return data
@@ -80,8 +77,7 @@ def unclip(box):
     distance = poly.area * unclip_ratio / poly.length
     offset = pyclipper.PyclipperOffset()
     offset.AddPath(box, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-    expanded = np.array(offset.Execute(distance))
-    return expanded
+    return np.array(offset.Execute(distance))
 
 
 def get_mini_boxes(contour):
@@ -142,7 +138,7 @@ def boxes_from_bitmap(pred, _bitmap, dest_width, dest_height):
     elif len(outs) == 2:
         contours, _ = outs[0], outs[1]
 
-    num_contours = min(len(contours), 1000)     
+    num_contours = min(len(contours), 1000)
     score_mode = "fast"
 
     boxes = []
@@ -157,7 +153,7 @@ def boxes_from_bitmap(pred, _bitmap, dest_width, dest_height):
             score = box_score_fast(pred, points.reshape(-1, 2))
         else:
             score = box_score_slow(pred, contour)
-        if 0.7 > score:
+        if score < 0.7:
             continue
 
         box = unclip(points).reshape(-1, 1, 2)
@@ -175,7 +171,7 @@ def boxes_from_bitmap(pred, _bitmap, dest_width, dest_height):
 
 
 def filter_tag_det_res(dt_boxes, image_shape):
-    img_height, img_width = image_shape[0:2]
+    img_height, img_width = image_shape[:2]
     dt_boxes_new = []
     for box in dt_boxes:
         box = order_points_clockwise(box)
@@ -210,8 +206,7 @@ def order_points_clockwise(pts):
     rightMost = rightMost[np.argsort(rightMost[:, 1]), :]
     (tr, br) = rightMost
 
-    rect = np.array([tl, tr, br, bl], dtype="float32")
-    return rect
+    return np.array([tl, tr, br, bl], dtype="float32")
 
 
 def clip_det_res(points, img_height, img_width):
@@ -279,7 +274,7 @@ def get_rotate_crop_image(img, points):
         M, (img_crop_width, img_crop_height),
         borderMode=cv2.BORDER_REPLICATE,
         flags=cv2.INTER_CUBIC)
-    dst_img_height, dst_img_width = dst_img.shape[0:2]
+    dst_img_height, dst_img_width = dst_img.shape[:2]
     if dst_img_height * 1.0 / dst_img_width >= 1.5:
         dst_img = np.rot90(dst_img)
     return dst_img
@@ -307,8 +302,9 @@ class BaseRecLabelDecode(object):
             'rsc', 'bg', 'uk', 'be', 'te', 'ka', 'chinese_cht', 'hi', 'mr',
             'ne', 'EN', 'latin', 'arabic', 'cyrillic', 'devanagari'
         ]
-        assert character_type in support_character_type, "Only {} are supported now but get {}".format(
-            support_character_type, character_type)
+        assert (
+            character_type in support_character_type
+        ), f"Only {support_character_type} are supported now but get {character_type}"
 
         self.beg_str = "sos"
         self.end_str = "eos"
@@ -322,8 +318,9 @@ class BaseRecLabelDecode(object):
             dict_character = list(self.character_str)
         elif character_type in support_character_type:
             self.character_str = []
-            assert character_dict_path is not None, "character_dict_path should not be None when character_type is {}".format(
-                character_type)
+            assert (
+                character_dict_path is not None
+            ), f"character_dict_path should not be None when character_type is {character_type}"
             with open(character_dict_path, "rb") as fin:
                 lines = fin.readlines()
                 for line in lines:
@@ -409,8 +406,7 @@ class CTCLabelDecode(BaseRecLabelDecode):
 def build_post_process(config):
     config = copy.deepcopy(config)
     module_name = config.pop('name')
-    module_class = eval(module_name)(**config)
-    return module_class
+    return eval(module_name)(**config)
 
 
 def draw_ocr_box_txt(image,

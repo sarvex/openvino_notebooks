@@ -36,7 +36,7 @@ class Model:
         for input_layer in self.net.inputs:
             new_shape = list(input_layer.shape)
             new_shape[0] = 1
-            shapes.update({input_layer: new_shape})
+            shapes[input_layer] = new_shape
         self.net.reshape(shapes)
 
 
@@ -91,9 +91,8 @@ class SegmentationModel(Model):
 
         Images are expected to have dtype np.uint8 and shape (H,W,3) or (H,W)
         """
-        meta = {}
         image = inputs[self.input_layer]
-        meta["frame"] = image
+        meta = {"frame": image}
         if image.shape[:2] != (self.image_height, self.image_width):
             image = cv2.resize(image, (self.image_width, self.image_height))
         if len(image.shape) == 3:

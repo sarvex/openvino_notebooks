@@ -37,15 +37,13 @@ def load_image(path: str) -> np.ndarray:
     import cv2
     import requests
 
-    if path.startswith("http"):
-        # Set User-Agent to Mozilla because some websites block
-        # requests with User-Agent Python
-        response = requests.get(path, headers={"User-Agent": "Mozilla/5.0"})
-        array = np.asarray(bytearray(response.content), dtype="uint8")
-        image = cv2.imdecode(array, -1)  # Loads the image as BGR
-    else:
-        image = cv2.imread(path)
-    return image
+    if not path.startswith("http"):
+        return cv2.imread(path)
+    # Set User-Agent to Mozilla because some websites block
+    # requests with User-Agent Python
+    response = requests.get(path, headers={"User-Agent": "Mozilla/5.0"})
+    array = np.asarray(bytearray(response.content), dtype="uint8")
+    return cv2.imdecode(array, -1)
 
 
 def download_file(
@@ -75,8 +73,6 @@ def download_file(
     import requests
 
     filename = filename or Path(urllib.parse.urlparse(url).path).name
-    chunk_size = 16384  # make chunks bigger so that not too many updates are triggered for Jupyter front-end
-
     filename = Path(filename)
     if len(filename.parts) > 1:
         raise ValueError(
@@ -109,6 +105,8 @@ def download_file(
     filesize = int(response.headers.get("Content-length", 0))
     if not filename.exists() or (os.stat(filename).st_size != filesize):
 
+        chunk_size = 16384  # make chunks bigger so that not too many updates are triggered for Jupyter front-end
+
         with tqdm_notebook(
             total=filesize,
             unit="B",
@@ -123,9 +121,8 @@ def download_file(
                     file_object.write(chunk)
                     progress_bar.update(len(chunk))
                     progress_bar.refresh()
-    else:
-        if not silent:
-            print(f"'{filename}' already exists.")
+    elif not silent:
+        print(f"'{filename}' already exists.")
 
     response.close()
 
@@ -142,7 +139,7 @@ def download_ir_model(model_xml_url: str, destination_folder: PathLike = None) -
                                files are saved to the current directory
     :return: path to downloaded xml model file
     """
-    model_bin_url = model_xml_url[:-4] + ".bin"
+    model_bin_url = f"{model_xml_url[:-4]}.bin"
     model_xml_path = download_file(model_xml_url, directory=destination_folder, show_progress=False)
     download_file(model_bin_url, directory=destination_folder)
     return model_xml_path
@@ -327,10 +324,7 @@ class SegmentationMap(NamedTuple):
 
     def get_labels(self):
         labelnames = [label.name for label in self.labels]
-        if any(labelnames):
-            return labelnames
-        else:
-            return None
+        return labelnames if any(labelnames) else None
 
 
 # In[ ]:
@@ -599,11 +593,10 @@ def check_device(device: str) -> bool:
              a DeviceNotFoundAlert will be shown.
     """
     ie = Core()
-    if device not in ie.available_devices:
-        DeviceNotFoundAlert(device)
-        return False
-    else:
+    if device in ie.available_devices:
         return True
+    DeviceNotFoundAlert(device)
+    return False
 
 
 def check_openvino_version(version: str) -> bool:

@@ -28,16 +28,18 @@ class HTMLDataExtractor(HTMLParser):
 # read html urls and list of all paragraphs data
 def get_paragraphs(url_list):
     headers = {"User-agent": "Mozilla/5.0"}
-    
+
     paragraphs_all = []
     for url in url_list:
-        log.info("Get paragraphs from {}".format(url))
+        log.info(f"Get paragraphs from {url}")
         response = requests.get(url=url, headers=headers)
         parser = HTMLDataExtractor(['title', 'p'])
         parser.feed(response.text)
         title = ' '.join(parser.ended_tags['title'])
         paragraphs = parser.ended_tags['p']
-        log.info("Page '{}' has {} chars in {} paragraphs".format(title, sum(len(p) for p in paragraphs), len(paragraphs)))
+        log.info(
+            f"Page '{title}' has {sum(len(p) for p in paragraphs)} chars in {len(paragraphs)} paragraphs"
+        )
         paragraphs_all.extend(paragraphs)
 
     return paragraphs_all

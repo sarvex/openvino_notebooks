@@ -54,10 +54,10 @@ class Pose:
             Pose.last_id += 1
 
     def filter(self, translation):
-        filtered_translation = []
-        for coordinate_id in range(3):
-            filtered_translation.append(self.translation_filter[coordinate_id](translation[coordinate_id]))
-        return filtered_translation
+        return [
+            self.translation_filter[coordinate_id](translation[coordinate_id])
+            for coordinate_id in range(3)
+        ]
 
 
 def get_similarity(a, b, threshold=0.5):

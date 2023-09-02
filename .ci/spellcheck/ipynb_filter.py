@@ -33,11 +33,11 @@ class IpynbFilter(filters.Filter):
 
     def _filter(self, nb):
         """Filter ipynb."""
-        text_list = []
-        for cell in nb.cells:
-            if cell["cell_type"] == self.cell_type:
-                text_list.append(cell["source"])
-
+        text_list = [
+            cell["source"]
+            for cell in nb.cells
+            if cell["cell_type"] == self.cell_type
+        ]
         return "\n".join(text_list)
 
     def sfilter(self, source):

@@ -84,6 +84,8 @@ def convert_vae_encoder_onnx(vae: torch.nn.Module, onnx_path: Path, width:int = 
     Returns:
         None
     """
+
+
     class VAEEncoderWrapper(torch.nn.Module):
         def __init__(self, vae):
             super().__init__()
@@ -91,8 +93,8 @@ def convert_vae_encoder_onnx(vae: torch.nn.Module, onnx_path: Path, width:int = 
 
         def forward(self, image):
             h = self.vae.encoder(image)
-            moments = self.vae.quant_conv(h)
-            return moments
+            return self.vae.quant_conv(h)
+
 
     if not onnx_path.exists():
         vae_encoder = VAEEncoderWrapper(vae)

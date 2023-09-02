@@ -79,9 +79,7 @@ def xyxy_to_tlwh(bbox_xyxy):
     x1, y1, x2, y2 = bbox_xyxy
     t = x1
     l = y1
-    w = int(x2-x1)
-    h = int(y2-y1)
-    return t, l, w, h
+    return t, l, int(x2 - t), int(y2 - l)
 
 
 def compute_color_for_labels(label):

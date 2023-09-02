@@ -320,11 +320,10 @@ class OVStableDiffusionPipeline(DiffusionPipeline):
                 orig_height, orig_width = meta["src_height"], meta["src_width"]
                 image = [img.resize((orig_width, orig_height),
                                     PIL.Image.Resampling.LANCZOS) for img in image]
-        else:
-            if "src_height" in meta:
-                orig_height, orig_width = meta["src_height"], meta["src_width"]
-                image = [cv2.resize(img, (orig_width, orig_width))
-                         for img in image]
+        elif "src_height" in meta:
+            orig_height, orig_width = meta["src_height"], meta["src_width"]
+            image = [cv2.resize(img, (orig_width, orig_width))
+                     for img in image]
         return image
 
     def get_timesteps(self, num_inference_steps:int, strength:float):

@@ -58,12 +58,16 @@ def min_cost_matching(
     row_indices, col_indices = linear_assignment(cost_matrix)
 
     matches, unmatched_tracks, unmatched_detections = [], [], []
-    for col, detection_idx in enumerate(detection_indices):
-        if col not in col_indices:
-            unmatched_detections.append(detection_idx)
-    for row, track_idx in enumerate(track_indices):
-        if row not in row_indices:
-            unmatched_tracks.append(track_idx)
+    unmatched_detections.extend(
+        detection_idx
+        for col, detection_idx in enumerate(detection_indices)
+        if col not in col_indices
+    )
+    unmatched_tracks.extend(
+        track_idx
+        for row, track_idx in enumerate(track_indices)
+        if row not in row_indices
+    )
     for row, col in zip(row_indices, col_indices):
         track_idx = track_indices[row]
         detection_idx = detection_indices[col]
@@ -129,7 +133,7 @@ def matching_cascade(
             k for k in track_indices
             if tracks[k].time_since_update == 1 + level
         ]
-        if len(track_indices_l) == 0:  # Nothing to match at this level
+        if not track_indices_l:  # Nothing to match at this level
             continue
 
         matches_l, _, unmatched_detections = \
@@ -137,7 +141,7 @@ def matching_cascade(
                 distance_metric, max_distance, tracks, detections,
                 track_indices_l, unmatched_detections)
         matches += matches_l
-    unmatched_tracks = list(set(track_indices) - set(k for k, _ in matches))
+    unmatched_tracks = list(set(track_indices) - {k for k, _ in matches})
     return matches, unmatched_tracks, unmatched_detections
 
 

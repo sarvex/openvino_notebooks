@@ -22,10 +22,14 @@ def parse_arguments():
     return parser.parse_args()
 
 def find_notebook_dir(path, root):
-    for parent in path.parents:
-        if root == parent.parent:
-            return parent.relative_to(root)
-    return None
+    return next(
+        (
+            parent.relative_to(root)
+            for parent in path.parents
+            if root == parent.parent
+        ),
+        None,
+    )
 
 def move_notebooks(nb_dir):
     current_notebooks_dir = ROOT / 'notebooks'
@@ -45,7 +49,7 @@ def prepare_test_plan(test_list, ignore_list, nb_dir=None):
     if len(test_list) == 1 and test_list[0].endswith('.txt'):
         testing_notebooks = []
         with open(test_list[0], 'r') as f:
-            for line in f.readlines():
+            for line in f:
                 changed_path = Path(line.strip())
                 if changed_path.resolve() == (ROOT / 'requirements.txt').resolve():
                     print('requirements.txt changed, check all notebooks')
@@ -146,7 +150,7 @@ def main():
         notebooks_moving_dir = Path(notebooks_moving_dir)
         root = notebooks_moving_dir.parent
         move_notebooks(notebooks_moving_dir)
-    
+
     test_plan = prepare_test_plan(args.test_list, args.ignore_list, notebooks_moving_dir)
     for notebook, report in test_plan.items():
         if report['status'] == "SKIPPED":
@@ -157,8 +161,7 @@ def main():
             failed_notebooks.append(str(notebook))
             if args.early_stop:
                 break
-    exit_status = finalize_status(failed_notebooks, test_plan, reports_dir, root)
-    return exit_status
+    return finalize_status(failed_notebooks, test_plan, reports_dir, root)
 
 
 if __name__ == '__main__':

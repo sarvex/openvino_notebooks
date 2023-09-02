@@ -45,10 +45,7 @@ class OneEuroFilter:
         self.dx = None
 
     def __call__(self, x):
-        if self.dx is None:
-            self.dx = 0
-        else:
-            self.dx = (x - self.x_previous) * self.freq
+        self.dx = 0 if self.dx is None else (x - self.x_previous) * self.freq
         dx_smoothed = self.filter_dx(self.dx, get_alpha(self.freq, self.dcutoff))
         cutoff = self.mincutoff + self.beta * abs(dx_smoothed)
         x_filtered = self.filter_x(x, get_alpha(self.freq, cutoff))
